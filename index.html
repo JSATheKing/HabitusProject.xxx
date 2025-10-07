@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DesafioHabits</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            colors: {
+              'bg-start': '#0C0C10',
+              'bg-end': '#1B0E2E',
+              primary: '#7A00FF', // Purple
+              'primary-focus': '#9333ea',
+              secondary: '#00C4FF', // Neon Blue
+              'secondary-focus': '#00A8E0',
+              accent: '#00FFB2', // Neon Green
+              danger: '#FF4D4D', // Red-orange
+              text: '#E5E7EB',
+              'text-secondary': '#B0B0B0',
+            },
+            boxShadow: {
+              'glow-purple': '0 0 15px rgba(122, 0, 255, 0.6)',
+              'glow-blue': '0 0 15px rgba(0, 196, 255, 0.6)',
+              'inner-glow': 'inset 0 0 10px rgba(122, 0, 255, 0.2)',
+              'glow-dual': '0 0 25px rgba(0, 196, 255, 0.15), inset 0 0 15px rgba(122, 0, 255, 0.2)',
+            },
+            keyframes: {
+              pulseGlow: {
+                '0%, 100%': { opacity: 1, filter: 'brightness(1)' },
+                '50%': { opacity: 0.8, filter: 'brightness(1.5)' },
+              },
+              fadeInUp: {
+                '0%': { opacity: 0, transform: 'translateY(20px) scale(0.95)' },
+                '100%': { opacity: 1, transform: 'translateY(0) scale(1)' },
+              },
+              shine: {
+                '0%': { transform: 'translateX(-100%)' },
+                '100%': { transform: 'translateX(100%)' },
+              },
+              fadeInOut: {
+                '0%, 100%': { opacity: 0, backdropFilter: 'blur(0px)' },
+                '20%, 80%': { opacity: 1, backdropFilter: 'blur(4px)' },
+              },
+              subtlePulse: {
+                '0%, 100%': { filter: 'drop-shadow(0 0 3px currentColor)' },
+                '50%': { filter: 'drop-shadow(0 0 6px currentColor)' },
+              },
+              gradientMove: {
+                '0%, 100%': { 'background-position': '0% 50%' },
+                '50%': { 'background-position': '100% 50%' },
+              },
+              levelUpGlow: {
+                '0%': { 'background-position': '0% 50%', 'box-shadow': '0 0 15px rgba(0, 196, 255, 0.4)', transform: 'scale(1)' },
+                '50%': { 'background-position': '100% 50%', 'box-shadow': '0 0 40px rgba(122, 0, 255, 0.7), 0 0 20px rgba(0, 196, 255, 0.5)', transform: 'scale(1.05)' },
+                '100%': { 'background-position': '0% 50%', 'box-shadow': '0 0 15px rgba(0, 196, 255, 0.4)', transform: 'scale(1)' },
+              },
+            },
+            animation: {
+              'pulse-glow': 'pulseGlow 2.5s ease-in-out infinite',
+              'fade-in-up': 'fadeInUp 0.5s ease-out forwards',
+              'shine': 'shine 3s ease-in-out infinite',
+              'fade-in-out': 'fadeInOut 3s ease-in-out forwards',
+              'subtle-pulse': 'subtlePulse 3s ease-in-out infinite',
+              'gradient-move': 'gradientMove 3s ease infinite',
+              'level-up-glow': 'levelUpGlow 3s ease-in-out forwards',
+            },
+          },
+        },
+      }
+    </script>
+    <style>
+      .bg-glass {
+        background-color: rgba(40, 40, 60, 0.3);
+        backdrop-filter: blur(10px);
+        --tw-border-opacity: 1;
+        border-color: rgba(255, 255, 255, 0.1);
+      }
+       .bg-gradient-container {
+        background-image: linear-gradient(135deg, #0C0C12, #141426, #1E1E3C);
+      }
+      .text-gradient-purple-blue {
+        background-image: linear-gradient(to right, #7A00FF, #1E90FF);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .text-gradient-blue-purple {
+         background-image: linear-gradient(to right, #00C4FF, #7A00FF);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+       .text-gradient-white-blue {
+        background-image: linear-gradient(to right, #FFFFFF, #E0F5FF, #00C4FF);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .shine-effect {
+        position: relative;
+        overflow: hidden;
+      }
+      .shine-effect::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        animation: shine 3s ease-in-out infinite;
+        animation-delay: 1s;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "recharts": "https://aistudiocdn.com/recharts@^3.2.1",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.3"
+  }
+}
+</script>
+</head>
+  <body class="bg-bg-start text-text">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "name": "HABITUS",
+  "description": "Um aplicativo de desafios de hábitos com premiação em dinheiro. Usuários pagam para entrar em desafios, cumprem as metas gravando vídeos e concorrem a prêmios. Inclui sistema anti-fraude, moderação e planos de assinatura.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
