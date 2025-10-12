@@ -1,5 +1,7 @@
 import { User, Challenge, Transaction, UserPlan, KycStatus, ChallengeType, ModerationItem } from '../types';
 
+const XANO_API_URL = import.meta.env.VITE_XANO_API_URL;
+
 // --- MOCK DATA ---
 const MOCK_USER: User = {
   id: 'user-123',
@@ -69,29 +71,67 @@ const MOCK_PARTICIPANTS = [
 // --- MOCK API FUNCTIONS ---
 const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
+const xanoFetch = async (endpoint: string, options: RequestInit = {}) => {
+  const response = await fetch(`${XANO_API_URL}${endpoint}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Xano API error: ${response.statusText}`);
+  }
+
+  return response.json();
+};
+
 export const api = {
   login: async (email: string, pass: string): Promise<User> => {
-    await delay(500);
-    if (email === "user@desafio.com" && pass === "password") {
-        return MOCK_USER;
+    try {
+      const data = await xanoFetch('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password: pass }),
+      });
+      return data;
+    } catch (error) {
+      await delay(500);
+      if (email === "user@desafio.com" && pass === "password") {
+          return MOCK_USER;
+      }
+      throw new Error("Credenciais inválidas");
     }
-    throw new Error("Credenciais inválidas");
   },
 
   checkSession: async (): Promise<User> => {
-    await delay(200);
-    // In a real app, you'd check a token. Here we just return the mock user.
-    return MOCK_USER;
+    try {
+      const data = await xanoFetch('/auth/me');
+      return data;
+    } catch (error) {
+      await delay(200);
+      return MOCK_USER;
+    }
   },
-  
+
   getChallenges: async (): Promise<Challenge[]> => {
-    await delay(500);
-    return MOCK_CHALLENGES;
+    try {
+      const data = await xanoFetch('/challenges');
+      return data;
+    } catch (error) {
+      await delay(500);
+      return MOCK_CHALLENGES;
+    }
   },
 
   getChallengeById: async (id: string): Promise<Challenge | undefined> => {
-    await delay(300);
-    return MOCK_CHALLENGES.find(c => c.id === id);
+    try {
+      const data = await xanoFetch(`/challenges/${id}`);
+      return data;
+    } catch (error) {
+      await delay(300);
+      return MOCK_CHALLENGES.find(c => c.id === id);
+    }
   },
 
   getChallengeRoomData: async (id: string): Promise<{ challenge: Challenge, participants: typeof MOCK_PARTICIPANTS } | null> => {
