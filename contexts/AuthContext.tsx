@@ -14,11 +14,21 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    const saved = localStorage.getItem('user');
+    return saved ? JSON.parse(saved) : null;
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate checking for an existing session
+    if (user) {
+      localStorage.setItem('user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('user');
+    }
+  }, [user]);
+
+  useEffect(() => {
     const checkSession = async () => {
       try {
         const loggedInUser = await api.checkSession();
@@ -53,12 +63,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const updateUser = async (updates: Partial<User>) => {
     if (!user) return;
 
+    const updatedUser = { ...user, ...updates };
+    setUser(updatedUser);
+
     try {
-      const updatedUser = await api.updateUser(updates);
-      setUser(updatedUser);
+      await api.updateUser(updates);
     } catch (error) {
       console.error("Update user failed:", error);
-      throw error;
     }
   };
 

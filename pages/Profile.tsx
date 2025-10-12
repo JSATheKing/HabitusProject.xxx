@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { UserPlan } from '../types';
 import { getPatentInfo } from '../utils/patents';
@@ -13,18 +13,31 @@ const Profile: React.FC = () => {
   const { user, logout, updateUser } = useAuth();
   
   // State for editable fields
-  const [nickname, setNickname] = useState('@alexfit');
+  const [nickname, setNickname] = useState(user?.nickname || '@alexfit');
   const [email, setEmail] = useState(user?.email || '');
-  const [phone, setPhone] = useState('(11) 99999-8888');
-  const [state, setState] = useState('São Paulo');
-  const [city, setCity] = useState('São Paulo');
-  const [birthDate, setBirthDate] = useState('01/01/1990');
+  const [phone, setPhone] = useState(user?.phone || '(11) 99999-8888');
+  const [state, setState] = useState(user?.state || 'São Paulo');
+  const [city, setCity] = useState(user?.city || 'São Paulo');
+  const [birthDate, setBirthDate] = useState(user?.birthDate || '01/01/1990');
 
   // State for UI components
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState(`https://i.pravatar.cc/150?u=${user?.id}`);
+  const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl || `https://i.pravatar.cc/150?u=${user?.id}`);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [activePlan, setActivePlan] = useState<UserPlan>(user?.plan || UserPlan.GRATUITO);
+
+  useEffect(() => {
+    if (user) {
+      setNickname(user.nickname || '@alexfit');
+      setEmail(user.email || '');
+      setPhone(user.phone || '(11) 99999-8888');
+      setState(user.state || 'São Paulo');
+      setCity(user.city || 'São Paulo');
+      setBirthDate(user.birthDate || '01/01/1990');
+      setAvatarUrl(user.avatarUrl || `https://i.pravatar.cc/150?u=${user.id}`);
+      setActivePlan(user.plan || UserPlan.GRATUITO);
+    }
+  }, [user]);
 
   // State for settings
   const [notifications, setNotifications] = useState(true);
@@ -41,37 +54,28 @@ const Profile: React.FC = () => {
     setAvatarUrl(newAvatarDataUrl);
     setIsAvatarModalOpen(false);
 
-    try {
-      await updateUser({ avatarUrl: newAvatarDataUrl } as any);
-      showToast('Sua foto de perfil foi atualizada com sucesso!', 'success');
-    } catch (error) {
-      showToast('Erro ao salvar foto de perfil', 'error');
-    }
+    await updateUser({ avatarUrl: newAvatarDataUrl });
+    showToast('Sua foto de perfil foi atualizada com sucesso!', 'success');
   };
 
   const handleSaveChanges = async () => {
-    try {
-      await updateUser({
-        email,
-        name: user?.name || '',
-        state,
-      } as any);
-      showToast('Suas informações foram atualizadas com sucesso!', 'success');
-    } catch (error) {
-      showToast('Erro ao salvar alterações', 'error');
-    }
+    await updateUser({
+      email,
+      state,
+      city,
+      birthDate,
+      phone,
+      nickname,
+    });
+    showToast('Suas informações foram atualizadas com sucesso!', 'success');
   };
   
   const handleUpgrade = async (plan: UserPlan) => {
     const planName = plan.charAt(0).toUpperCase() + plan.slice(1).toLowerCase();
     if (window.confirm(`💎 Deseja migrar para o Plano ${planName}?`)) {
-      try {
-        await updateUser({ plan });
-        setActivePlan(plan);
-        showToast(`Parabéns! Agora você é um membro ${planName}!`, 'success');
-      } catch (error) {
-        showToast('Erro ao atualizar plano', 'error');
-      }
+      await updateUser({ plan });
+      setActivePlan(plan);
+      showToast(`Parabéns! Agora você é um membro ${planName}!`, 'success');
     }
   };
   

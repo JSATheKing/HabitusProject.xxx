@@ -28,10 +28,15 @@ export interface User {
   state: string;
   plan: UserPlan;
   xp: number;
-  saldo: number; // in cents
+  saldo: number;
   device_id: string;
   kyc_status: KycStatus;
   createdAt: Date;
+  avatarUrl?: string;
+  phone?: string;
+  city?: string;
+  birthDate?: string;
+  nickname?: string;
 }
 
 export interface Challenge {
