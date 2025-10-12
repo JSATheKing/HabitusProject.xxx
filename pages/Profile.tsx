@@ -10,12 +10,15 @@ import {
 import AvatarModal from '../components/AvatarModal';
 
 const Profile: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   
   // State for editable fields
   const [nickname, setNickname] = useState('@alexfit');
   const [email, setEmail] = useState(user?.email || '');
   const [phone, setPhone] = useState('(11) 99999-8888');
+  const [state, setState] = useState('São Paulo');
+  const [city, setCity] = useState('São Paulo');
+  const [birthDate, setBirthDate] = useState('01/01/1990');
 
   // State for UI components
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
@@ -34,22 +37,41 @@ const Profile: React.FC = () => {
     setTimeout(() => setToast(null), 3000);
   };
   
-  const handleAvatarSave = (newAvatarDataUrl: string) => {
+  const handleAvatarSave = async (newAvatarDataUrl: string) => {
     setAvatarUrl(newAvatarDataUrl);
     setIsAvatarModalOpen(false);
-    showToast('Sua foto de perfil foi atualizada com sucesso!', 'success');
+
+    try {
+      await updateUser({ avatarUrl: newAvatarDataUrl } as any);
+      showToast('Sua foto de perfil foi atualizada com sucesso!', 'success');
+    } catch (error) {
+      showToast('Erro ao salvar foto de perfil', 'error');
+    }
   };
 
-  const handleSaveChanges = () => {
-    showToast('Suas informações foram atualizadas com sucesso!', 'success');
+  const handleSaveChanges = async () => {
+    try {
+      await updateUser({
+        email,
+        name: user?.name || '',
+        state,
+      } as any);
+      showToast('Suas informações foram atualizadas com sucesso!', 'success');
+    } catch (error) {
+      showToast('Erro ao salvar alterações', 'error');
+    }
   };
   
-  const handleUpgrade = (plan: UserPlan) => {
+  const handleUpgrade = async (plan: UserPlan) => {
     const planName = plan.charAt(0).toUpperCase() + plan.slice(1).toLowerCase();
     if (window.confirm(`💎 Deseja migrar para o Plano ${planName}?`)) {
-      setActivePlan(plan);
-      showToast(`🎉 Parabéns! Agora você é um membro ${planName}!`, 'success');
-      // API call to update plan would go here
+      try {
+        await updateUser({ plan });
+        setActivePlan(plan);
+        showToast(`Parabéns! Agora você é um membro ${planName}!`, 'success');
+      } catch (error) {
+        showToast('Erro ao atualizar plano', 'error');
+      }
     }
   };
   
@@ -150,10 +172,10 @@ const Profile: React.FC = () => {
           <h3 className="font-bold mb-4 text-lg">Minhas Informações Pessoais</h3>
           <div className="space-y-3 text-left">
             <div className="grid grid-cols-2 gap-3">
-                <input type="text" placeholder="Estado" className="w-full bg-white/5 p-3 rounded-md text-sm" defaultValue="São Paulo"/>
-                <input type="text" placeholder="Cidade" className="w-full bg-white/5 p-3 rounded-md text-sm" defaultValue="São Paulo"/>
+                <input type="text" value={state} onChange={e => setState(e.target.value)} placeholder="Estado" className="w-full bg-white/5 p-3 rounded-md text-sm"/>
+                <input type="text" value={city} onChange={e => setCity(e.target.value)} placeholder="Cidade" className="w-full bg-white/5 p-3 rounded-md text-sm"/>
             </div>
-            <input type="text" placeholder="Data de Nascimento" className="w-full bg-white/5 p-3 rounded-md text-sm" defaultValue="01/01/1990"/>
+            <input type="text" value={birthDate} onChange={e => setBirthDate(e.target.value)} placeholder="Data de Nascimento" className="w-full bg-white/5 p-3 rounded-md text-sm"/>
             <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="Número de telefone" className="w-full bg-white/5 p-3 rounded-md text-sm"/>
             <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="E-mail" className="w-full bg-white/5 p-3 rounded-md text-sm"/>
             <input type="text" value={nickname} onChange={e => setNickname(e.target.value)} placeholder="Apelido público" className="w-full bg-white/5 p-3 rounded-md text-sm"/>

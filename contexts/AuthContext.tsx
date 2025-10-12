@@ -8,6 +8,7 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, pass: string) => Promise<void>;
   logout: () => void;
+  updateUser: (updates: Partial<User>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -47,10 +48,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const logout = () => {
     setUser(null);
-    // Here you would also call an API to invalidate the session
   };
 
-  const value = { user, loading, login, logout };
+  const updateUser = async (updates: Partial<User>) => {
+    if (!user) return;
+
+    try {
+      const updatedUser = await api.updateUser(updates);
+      setUser(updatedUser);
+    } catch (error) {
+      console.error("Update user failed:", error);
+      throw error;
+    }
+  };
+
+  const value = { user, loading, login, logout, updateUser };
 
   return (
     <AuthContext.Provider value={value}>

@@ -148,6 +148,19 @@ export const api = {
       await delay(200);
       return MOCK_USER;
   },
+
+  updateUser: async (updates: Partial<User>): Promise<User> => {
+    try {
+      const data = await xanoFetch('/auth/me', {
+        method: 'PATCH',
+        body: JSON.stringify(updates),
+      });
+      return data;
+    } catch (error) {
+      await delay(300);
+      return { ...MOCK_USER, ...updates };
+    }
+  },
   
   getWalletTransactions: async (): Promise<Transaction[]> => {
       await delay(600);
