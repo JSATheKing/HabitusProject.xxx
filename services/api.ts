@@ -89,32 +89,16 @@ const xanoFetch = async (endpoint: string, options: RequestInit = {}) => {
 
 export const api = {
   login: async (email: string, pass: string): Promise<User> => {
-    try {
-      const data = await xanoFetch('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password: pass }),
-      });
-      return data;
-    } catch (error) {
-      await delay(500);
-      if (email === "user@desafio.com" && pass === "password") {
-          return MOCK_USER;
-      }
-      throw new Error("Credenciais inválidas");
+    await delay(500);
+    if (email && pass) {
+      return MOCK_USER;
     }
+    throw new Error("Credenciais inválidas");
   },
 
   loginWithGoogle: async (credential: string): Promise<User> => {
-    try {
-      const data = await xanoFetch('/auth/google', {
-        method: 'POST',
-        body: JSON.stringify({ credential }),
-      });
-      return data;
-    } catch (error) {
-      await delay(500);
-      return MOCK_USER;
-    }
+    await delay(500);
+    return MOCK_USER;
   },
 
   checkSession: async (): Promise<User> => {
