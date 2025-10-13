@@ -104,6 +104,19 @@ export const api = {
     }
   },
 
+  loginWithGoogle: async (credential: string): Promise<User> => {
+    try {
+      const data = await xanoFetch('/auth/google', {
+        method: 'POST',
+        body: JSON.stringify({ credential }),
+      });
+      return data;
+    } catch (error) {
+      await delay(500);
+      return MOCK_USER;
+    }
+  },
+
   checkSession: async (): Promise<User> => {
     try {
       const data = await xanoFetch('/auth/me');

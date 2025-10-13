@@ -1,15 +1,65 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+
+declare global {
+  interface Window {
+    google: any;
+  }
+}
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 const Login: React.FC = () => {
     const [email, setEmail] = useState('user@desafio.com');
     const [password, setPassword] = useState('password');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const { login } = useAuth();
+    const { login, loginWithGoogle } = useAuth();
     const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!GOOGLE_CLIENT_ID) return;
+
+        const script = document.createElement('script');
+        script.src = 'https://accounts.google.com/gsi/client';
+        script.async = true;
+        script.defer = true;
+        document.body.appendChild(script);
+
+        script.onload = () => {
+            if (window.google) {
+                window.google.accounts.id.initialize({
+                    client_id: GOOGLE_CLIENT_ID,
+                    callback: handleGoogleCallback,
+                });
+            }
+        };
+
+        return () => {
+            document.body.removeChild(script);
+        };
+    }, []);
+
+    const handleGoogleCallback = async (response: any) => {
+        setError('');
+        setLoading(true);
+        try {
+            await loginWithGoogle(response.credential);
+            navigate('/');
+        } catch (err) {
+            setError('Falha no login com Google.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleGoogleLogin = () => {
+        if (window.google) {
+            window.google.accounts.id.prompt();
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -78,8 +128,10 @@ const Login: React.FC = () => {
 
                 <div className="mt-6">
                     <button
+                        onClick={handleGoogleLogin}
+                        disabled={loading || !GOOGLE_CLIENT_ID}
                         aria-label="Sign in with Google"
-                        className="w-full inline-flex justify-center py-3 px-4 border border-gray-600 rounded-md shadow-sm bg-surface text-sm font-medium text-text hover:bg-gray-700"
+                        className="w-full inline-flex justify-center py-3 px-4 border border-gray-600 rounded-md shadow-sm bg-surface text-sm font-medium text-text hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                        <svg className="w-5 h-5 mr-2" viewBox="0 0 48 48">
                          <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path>
