@@ -2,7 +2,6 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { User, UserPlan, KycStatus } from '../types';
 import { api } from '../services/api';
-import { supabase } from '../lib/supabase';
 
 interface AuthContextType {
   user: User | null;
@@ -16,80 +15,39 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    const saved = localStorage.getItem('user');
+    return saved ? JSON.parse(saved) : null;
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        loadUserProfile(session.user.id);
-      } else {
+    if (user) {
+      localStorage.setItem('user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('user');
+    }
+  }, [user]);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const loggedInUser = await api.checkSession();
+        setUser(loggedInUser);
+      } catch (error) {
+        setUser(null);
+      } finally {
         setLoading(false);
       }
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        loadUserProfile(session.user.id);
-      } else {
-        setUser(null);
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    };
+    checkSession();
   }, []);
-
-  const loadUserProfile = async (userId: string) => {
-    try {
-      const { data: profile, error } = await supabase
-        .from('users_profile')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      if (profile) {
-        const userData: User = {
-          id: profile.id,
-          name: profile.name || '',
-          email: profile.email || '',
-          cpf_hash: profile.cpf_hash || '',
-          state: profile.state || '',
-          plan: (profile.plan as UserPlan) || UserPlan.GRATUITO,
-          xp: profile.xp || 0,
-          saldo: profile.saldo || 0,
-          device_id: profile.device_id || '',
-          kyc_status: (profile.kyc_status as KycStatus) || KycStatus.NAO_INICIADO,
-          createdAt: new Date(profile.created_at),
-          avatarUrl: profile.avatar_url,
-          phone: profile.phone,
-          city: profile.city,
-          birthDate: profile.birth_date,
-          nickname: profile.nickname,
-        };
-        setUser(userData);
-      }
-    } catch (error) {
-      console.error('Error loading user profile:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const login = async (email: string, pass: string) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password: pass,
-      });
-
-      if (error) throw error;
-
-      if (data.user) {
-        await loadUserProfile(data.user.id);
-      }
+      const loggedInUser = await api.login(email, pass);
+      setUser(loggedInUser);
     } catch (error) {
       console.error("Login failed:", error);
       setUser(null);
@@ -113,8 +71,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const logout = async () => {
-    await supabase.auth.signOut();
+  const logout = () => {
     setUser(null);
   };
 
@@ -125,22 +82,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUser(updatedUser);
 
     try {
-      const { error } = await supabase
-        .from('users_profile')
-        .update({
-          name: updates.name,
-          email: updates.email,
-          state: updates.state,
-          city: updates.city,
-          phone: updates.phone,
-          nickname: updates.nickname,
-          birth_date: updates.birthDate,
-          avatar_url: updates.avatarUrl,
-          plan: updates.plan,
-        })
-        .eq('id', user.id);
-
-      if (error) throw error;
+      await api.updateUser(updates);
     } catch (error) {
       console.error("Update user failed:", error);
     }
